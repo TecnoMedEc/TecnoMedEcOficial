@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TecnoMed · Admin Firebase</title>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background: #f5fafd; padding: 1rem; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        
+        /* Login */
+        .login-container {
+            max-width: 400px;
+            margin: 50px auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: 1px solid #d4e6f0;
+        }
+        
+        .login-container h2 {
+            color: #1f7a8c;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.8rem 1.2rem;
+            margin: 0.5rem 0;
+            border: 2px solid #d9eaf5;
+            border-radius: 40px;
+            font-size: 1rem;
+        }
+        
+        .btn {
+            background: #1f7a8c;
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 40px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 1rem;
+        }
+        
+        .btn:hover { background: #166b7c; }
+        .btn-danger { background: #e74c3c; }
+        .btn-danger:hover { background: #c0392b; }
+        
+        .error-message {
+            color: #e74c3c;
+            margin-top: 1rem;
+            text-align: center;
+        }
+        
+        /* Admin panel */
+        .admin-header {
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: 40px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #d4e6f0;
+        }
+        
+        .form-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 30px;
+            margin-bottom: 1.5rem;
+            border: 1px solid #d4e6f0;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .productos-grid {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 30px;
+            border: 1px solid #d4e6f0;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th {
+            background: #e5f3fb;
+            padding: 0.8rem;
+            text-align: left;
+        }
+        
+        td {
+            padding: 0.8rem;
+            border-bottom: 1px solid #e2f0f8;
+        }
+        
+        .producto-imagen {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+        
+        .btn-small {
+            padding: 0.4rem 0.8rem;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            margin: 0 2px;
+        }
+        
+        .btn-edit { background: #e1f0fa; color: #1f7a8c; }
+        .btn-delete { background: #ffe5e5; color: #c0392b; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <!-- Pantalla de Login -->
+    <div id="loginContainer" class="container">
+        <div class="login-container">
+            <h2><i class="fas fa-lock"></i> Acceso Administrador</h2>
+            <p style="color: #5f7e8f; margin-bottom: 1rem;">Ingresa con tu cuenta de Firebase</p>
+            
+            <input type="email" id="email" class="form-control" placeholder="Email" value="admin@medicalbuy.com">
+            <input type="password" id="password" class="form-control" placeholder="Contraseña" value="AdminTecno2025">
+            
+            <button class="btn" id="btnLogin">
+                <i class="fas fa-sign-in-alt"></i> Iniciar Sesión
+            </button>
+            
+            <div id="loginError" class="error-message"></div>
+        </div>
+    </div>
+
+    <!-- Panel de Administración -->
+    <div id="adminContainer" class="container" style="display: none;">
+        <div class="admin-header">
+            <h2><i class="fas fa-user-shield"></i> Panel Admin - TecnoMed</h2>
+            <button class="btn btn-danger" id="btnLogout" style="width: auto;">
+                <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+            </button>
+        </div>
+
+        <!-- Formulario -->
+        <div class="form-card">
+            <h3><i class="fas fa-plus-circle"></i> Agregar / Editar Producto</h3>
+            <form id="productForm">
+                <input type="hidden" id="editKey" value="">
+                
+                <div class="form-row">
+                    <select id="categoria" class="form-control" required>
+                        <option value="">Seleccionar categoría</option>
+                        <option value="CUIDADOS">CUIDADOS</option>
+                        <option value="DIAGNÓSTICOS">DIAGNÓSTICOS</option>
+                        <option value="EMERGENCIA">EMERGENCIA</option>
+                        <option value="EQUIPOS">EQUIPOS</option>
+                        <option value="INSTRUMENTAL">INSTRUMENTAL</option>
+                        <option value="INSUMOS">INSUMOS</option>
+                        <option value="MOBILIARIO">MOBILIARIO</option>
+                        <option value="INDUMENTARIA">INDUMENTARIA</option>
+                        <option value="OXIGENOTERAPIA">OXIGENOTERAPIA</option>
+                    </select>
+                    <input type="text" id="producto" class="form-control" placeholder="Nombre del producto" required>
+                </div>
+                
+                <div class="form-row">
+                    <input type="number" id="precio" class="form-control" placeholder="Precio" required>
+                    <input type="number" id="stock" class="form-control" placeholder="Stock" required>
+                </div>
+                
+                <div class="form-row">
+                    <input type="url" id="imagen" class="form-control" placeholder="URL de la imagen" required>
+                    <input type="text" id="unidad" class="form-control" placeholder="Unidad" value="unidad" required>
+                </div>
+                
+                <div class="form-row">
+                    <select id="icono" class="form-control" required>
+                        <option value="fa-hand-holding-heart">Cuidados</option>
+                        <option value="fa-stethoscope">Diagnóstico</option>
+                        <option value="fa-truck-medical">Emergencia</option>
+                        <option value="fa-lungs">Equipos</option>
+                        <option value="fa-scalpel">Instrumental</option>
+                        <option value="fa-syringe">Insumos</option>
+                        <option value="fa-couch">Mobiliario</option>
+                        <option value="fa-tshirt">Indumentaria</option>
+                        <option value="fa-wind">Oxigenoterapia</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="btn">Guardar Producto</button>
+                <button type="button" class="btn" id="btnCancel" style="background: #95a5a6; margin-top: 0.5rem;">Cancelar</button>
+            </form>
+        </div>
+
+        <!-- Lista de productos -->
+        <div class="productos-grid">
+            <h3><i class="fas fa-list"></i> Productos en Firebase</h3>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Imagen</th>
+                            <th>Categoría</th>
+                            <th>Producto</th>
+                            <th>Precio</th>
+                            <th>Stock</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="productosBody">
+                        <tr><td colspan="6" style="text-align: center;">Cargando...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== CONFIGURACIÓN DE FIREBASE ==========
+        const firebaseConfig = {
+            apiKey: "AIzaSyDC9xFg5QypLX-ZnXBN55FmME39Lot9hLY",
+            authDomain: "medicalbuy-db.firebaseapp.com",
+            databaseURL: "https://medicalbuy-db-default-rtdb.firebaseio.com",
+            projectId: "medicalbuy-db",
+            storageBucket: "medicalbuy-db.firebasestorage.app",
+            messagingSenderId: "269696757008",
+            appId: "1:269696757008:web:9b74ecbed3f0e315e0c995",
+            measurementId: "G-664NJ16CLN"
+        };
+
+        // Inicializar Firebase (versión compat)
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        const auth = firebase.auth();
+        
+        // ========== ELEMENTOS DOM ==========
+        const loginContainer = document.getElementById('loginContainer');
+        const adminContainer = document.getElementById('adminContainer');
+        const btnLogin = document.getElementById('btnLogin');
+        const btnLogout = document.getElementById('btnLogout');
+        const email = document.getElementById('email');
+        const password = document.getElementById('password');
+        const loginError = document.getElementById('loginError');
+        const productosBody = document.getElementById('productosBody');
+        
+        // Formulario
+        const productForm = document.getElementById('productForm');
+        const editKey = document.getElementById('editKey');
+        const btnCancel = document.getElementById('btnCancel');
+        const categoria = document.getElementById('categoria');
+        const producto = document.getElementById('producto');
+        const precio = document.getElementById('precio');
+        const stock = document.getElementById('stock');
+        const imagen = document.getElementById('imagen');
+        const unidad = document.getElementById('unidad');
+        const icono = document.getElementById('icono');
+
+        // ========== VERIFICAR ESTADO DE AUTENTICACIÓN ==========
+        auth.onAuthStateChanged(user => {
+            console.log('Estado de autenticación:', user ? 'Usuario logueado' : 'No logueado');
+            if (user) {
+                loginContainer.style.display = 'none';
+                adminContainer.style.display = 'block';
+                cargarProductos();
+            } else {
+                loginContainer.style.display = 'block';
+                adminContainer.style.display = 'none';
+            }
+        });
+
+        // ========== LOGIN ==========
+        btnLogin.addEventListener('click', () => {
+            const emailVal = email.value.trim();
+            const passVal = password.value.trim();
+            
+            console.log('Intentando login con:', emailVal);
+            
+            auth.signInWithEmailAndPassword(emailVal, passVal)
+                .then(userCredential => {
+                    console.log('Login exitoso:', userCredential.user.email);
+                })
+                .catch(error => {
+                    console.error('Error de login:', error.code, error.message);
+                    loginError.textContent = 'Error: ' + error.message;
+                });
+        });
+
+        // ========== LOGOUT ==========
+        btnLogout.addEventListener('click', () => {
+            auth.signOut();
+        });
+
+        // ========== CARGAR PRODUCTOS ==========
+        function cargarProductos() {
+            const productosRef = database.ref('productos');
+            
+            productosRef.on('value', (snapshot) => {
+                const productos = snapshot.val();
+                mostrarProductos(productos);
+            }, error => {
+                console.error('Error cargando productos:', error);
+                productosBody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: red;">Error cargando productos</td></tr>';
+            });
+        }
+
+        // ========== MOSTRAR PRODUCTOS ==========
+        function mostrarProductos(productos) {
+            if (!productos) {
+                productosBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No hay productos. Agrega uno nuevo.</td></tr>';
+                return;
+            }
+            
+            let html = '';
+            
+            Object.keys(productos).forEach(key => {
+                const p = productos[key];
+                html += `
+                    <tr>
+                        <td><img src="${p.imagen}" class="producto-imagen" onerror="this.src='https://placehold.co/100x100/dfeef8/3b7e9c?text=IMG'"></td>
+                        <td>${p.categoria}</td>
+                        <td>${p.producto}</td>
+                        <td>$${p.precio.toLocaleString()}</td>
+                        <td>${p.stock}</td>
+                        <td>
+                            <button class="btn-small btn-edit" onclick="editarProducto('${key}')"><i class="fas fa-edit"></i></button>
+                            <button class="btn-small btn-delete" onclick="eliminarProducto('${key}')"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            productosBody.innerHTML = html;
+        }
+
+        // ========== GUARDAR PRODUCTO ==========
+        productForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const productoData = {
+                categoria: categoria.value,
+                producto: producto.value,
+                precio: parseFloat(precio.value),
+                stock: parseInt(stock.value),
+                imagen: imagen.value,
+                unidad: unidad.value,
+                icono: icono.value
+            };
+            
+            const key = editKey.value;
+            
+            if (key) {
+                database.ref('productos/' + key).set(productoData)
+                    .then(() => {
+                        alert('Producto actualizado');
+                        productForm.reset();
+                        editKey.value = '';
+                    });
+            } else {
+                database.ref('productos').push(productoData)
+                    .then(() => {
+                        alert('Producto agregado');
+                        productForm.reset();
+                    });
+            }
+        });
+
+        // ========== EDITAR PRODUCTO ==========
+        window.editarProducto = (key) => {
+            database.ref('productos/' + key).once('value', (snapshot) => {
+                const p = snapshot.val();
+                categoria.value = p.categoria;
+                producto.value = p.producto;
+                precio.value = p.precio;
+                stock.value = p.stock;
+                imagen.value = p.imagen;
+                unidad.value = p.unidad;
+                icono.value = p.icono;
+                editKey.value = key;
+            });
+        };
+
+        // ========== ELIMINAR PRODUCTO ==========
+        window.eliminarProducto = (key) => {
+            if (confirm('¿Eliminar producto?')) {
+                database.ref('productos/' + key).remove()
+                    .then(() => alert('Producto eliminado'));
+            }
+        };
+
+        // ========== CANCELAR ==========
+        btnCancel.addEventListener('click', () => {
+            productForm.reset();
+            editKey.value = '';
+        });
+    </script>
+</body>
+</html>
