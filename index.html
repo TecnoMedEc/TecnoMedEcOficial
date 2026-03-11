@@ -134,7 +134,52 @@
             background: #d0e2f0;
         }
         
-        /* ===== NUEVO: Modal de imagen ampliada ===== */
+        /* ===== BUSCADOR ===== */
+        .buscador-container {
+            background: white;
+            padding: 0.8rem 1.5rem;
+            border-radius: 60px;
+            margin: 1rem 0;
+            border: 1px solid #d4e6f0;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .buscador-container i {
+            color: #1f7a8c;
+            font-size: 1.2rem;
+        }
+        
+        #buscadorInput {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 1rem;
+            padding: 0.3rem 0;
+            background: transparent;
+        }
+        
+        #buscadorInput::placeholder {
+            color: #a0c0d0;
+        }
+        
+        .btn-limpiar {
+            background: none;
+            border: none;
+            color: #95a5a6;
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 0.3rem 0.8rem;
+            border-radius: 30px;
+        }
+        
+        .btn-limpiar:hover {
+            background: #f0f7fc;
+            color: #e74c3c;
+        }
+        
+        /* ===== MODAL IMAGEN ===== */
         .modal-imagen-overlay {
             display: none;
             position: fixed;
@@ -232,7 +277,15 @@
             color: #166b7c;
         }
         
-        .modal-imagen-detalles .stock-modal {
+        .modal-imagen-detalles .iva-modal {
+            font-size: 0.9rem;
+            background: #d4e6f0;
+            padding: 0.2rem 0.8rem;
+            border-radius: 30px;
+            margin-left: 1rem;
+        }
+        
+        .stock-modal {
             font-weight: 600;
             padding: 0.2rem 1rem;
             border-radius: 30px;
@@ -248,7 +301,6 @@
             background: #ffe9e9;
             color: #b13e3e;
         }
-        /* ===== FIN modal imagen ===== */
         
         /* Filtros */
         .filtros-container { 
@@ -286,6 +338,16 @@
         
         .hidden-category { 
             display: none !important; 
+        }
+        
+        /* Resultado de búsqueda vacío */
+        .no-resultados {
+            grid-column: 1/-1;
+            text-align: center;
+            padding: 3rem;
+            background: white;
+            border-radius: 40px;
+            color: #5f7e8f;
         }
         
         .card { 
@@ -372,6 +434,7 @@
         .precio-stock-row { 
             display: flex; 
             justify-content: space-between; 
+            align-items: center;
             background: #f0f7fc; 
             border-radius: 30px; 
             padding: 0.3rem 0.6rem; 
@@ -382,6 +445,16 @@
             font-size: 1.1rem; 
             font-weight: 700; 
             color: #166b7c; 
+        }
+        
+        .iva-badge {
+            font-size: 0.65rem;
+            background: #d4e6f0;
+            padding: 0.1rem 0.4rem;
+            border-radius: 20px;
+            color: #1f7a8c;
+            font-weight: 600;
+            margin-left: 0.3rem;
         }
         
         .stock-indicator { 
@@ -414,6 +487,11 @@
             margin: 0.5rem 0; 
         }
         
+        .control-cantidad label { 
+            font-size: 0.7rem; 
+            color: #1b4e5d; 
+        }
+        
         .control-cantidad input { 
             width: 50px; 
             border: none; 
@@ -435,6 +513,7 @@
             align-items: center; 
             justify-content: center; 
             gap: 6px; 
+            transition: background 0.2s;
         }
         
         .btn-wsp:hover {
@@ -450,6 +529,7 @@
         .contador-productos { 
             margin: 0.5rem 0; 
             color: #1f7a8c; 
+            font-weight: 500;
         }
         
         /* Footer con datos de contacto */
@@ -501,6 +581,12 @@
             align-items: center;
             justify-content: center;
             font-size: 1.5rem;
+            transition: transform 0.2s;
+        }
+        
+        .social-icon:hover {
+            transform: scale(1.1);
+            background: #e4405f; /* Color de Instagram */
         }
         
         .footer-note { 
@@ -536,7 +622,16 @@
         </div>
     </div>
 
-    <!-- ===== NUEVO: Modal de imagen ampliada ===== -->
+    <!-- ===== NUEVO: BUSCADOR ===== -->
+    <div class="buscador-container">
+        <i class="fas fa-search"></i>
+        <input type="text" id="buscadorInput" placeholder="Buscar productos por nombre, categoría...">
+        <button class="btn-limpiar" id="btnLimpiarBusqueda">
+            <i class="fas fa-times"></i> Limpiar
+        </button>
+    </div>
+
+    <!-- ===== MODAL IMAGEN ===== -->
     <div class="modal-imagen-overlay" id="modalImagen">
         <div class="modal-imagen-contenido">
             <div class="modal-imagen-header">
@@ -560,7 +655,7 @@
         </div>
     </div>
 
-    <!-- Footer con datos de contacto -->
+    <!-- Footer con datos de contacto y logo Instagram -->
     <div class="footer-contacto">
         <div class="contacto-info">
             <div class="contacto-item">
@@ -572,9 +667,9 @@
                 <span>0986501112 - 098104315</span>
             </div>
             <div class="contacto-item">
-                <div class="social-icon">
+                <a href="https://instagram.com/tecnomed_ec" target="_blank" class="social-icon">
                     <i class="fab fa-instagram"></i>
-                </div>
+                </a>
                 <a href="https://instagram.com/tecnomed_ec" target="_blank">@tecnomed_ec</a>
             </div>
         </div>
@@ -602,7 +697,7 @@
     const database = firebase.database();
 
     // ========== CONFIGURACIÓN ==========
-    const WHATSAPP_NUMBER = "593986501112"; // Cambiado a Ecuador (tu número)
+    const WHATSAPP_NUMBER = "593986501112"; // Número Ecuador
     const ADMIN_USER = "Admin";
     const ADMIN_PASS = "AdminTecno";
 
@@ -617,7 +712,11 @@
     const filtrosDiv = document.getElementById('filtrosCategorias');
     const contadorSpan = document.getElementById('contadorProductos');
     
-    // ===== NUEVO: Elementos del modal de imagen =====
+    // ===== NUEVO: Elementos del buscador =====
+    const buscadorInput = document.getElementById('buscadorInput');
+    const btnLimpiarBusqueda = document.getElementById('btnLimpiarBusqueda');
+    
+    // ===== Elementos del modal de imagen =====
     const modalImagen = document.getElementById('modalImagen');
     const btnCerrarModalImagen = document.getElementById('btnCerrarModalImagen');
     const modalImagenBody = document.getElementById('modalImagenBody');
@@ -627,12 +726,86 @@
     // ========== VARIABLES GLOBALES ==========
     let productos = [];
     let categoriaActiva = 'todas';
+    let textoBusqueda = '';
 
-    // ===== NUEVO: Función para abrir modal de imagen =====
+    // ===== NUEVO: Función para filtrar por búsqueda =====
+    function filtrarPorBusqueda() {
+        textoBusqueda = buscadorInput.value.toLowerCase().trim();
+        aplicarFiltroCompleto();
+    }
+    
+    // Limpiar búsqueda
+    btnLimpiarBusqueda.addEventListener('click', () => {
+        buscadorInput.value = '';
+        textoBusqueda = '';
+        aplicarFiltroCompleto();
+    });
+    
+    // Buscar mientras escribes
+    buscadorInput.addEventListener('input', filtrarPorBusqueda);
+
+    // ===== NUEVO: Función que combina categoría + búsqueda =====
+    function aplicarFiltroCompleto() {
+        const tarjetas = document.querySelectorAll('.card');
+        let productosVisibles = 0;
+        
+        tarjetas.forEach(card => {
+            const catCard = card.dataset.categoria;
+            const nombreProducto = card.dataset.nombre?.toLowerCase() || '';
+            const categoriaProducto = card.dataset.categoria?.toLowerCase() || '';
+            
+            // Verificar si cumple filtro de categoría
+            const cumpleCategoria = categoriaActiva === 'todas' || catCard === categoriaActiva;
+            
+            // Verificar si cumple filtro de búsqueda
+            const cumpleBusqueda = textoBusqueda === '' || 
+                                  nombreProducto.includes(textoBusqueda) || 
+                                  categoriaProducto.includes(textoBusqueda);
+            
+            if (cumpleCategoria && cumpleBusqueda) {
+                card.classList.remove('hidden-category');
+                productosVisibles++;
+            } else {
+                card.classList.add('hidden-category');
+            }
+        });
+        
+        // Actualizar contador
+        if (textoBusqueda && categoriaActiva !== 'todas') {
+            contadorSpan.textContent = `Mostrando ${categoriaActiva} - "${textoBusqueda}": ${productosVisibles} productos`;
+        } else if (textoBusqueda) {
+            contadorSpan.textContent = `Buscando "${textoBusqueda}": ${productosVisibles} productos`;
+        } else if (categoriaActiva !== 'todas') {
+            contadorSpan.textContent = `Mostrando ${categoriaActiva}: ${productosVisibles} productos`;
+        } else {
+            contadorSpan.textContent = `Mostrando todos los productos (${productosVisibles})`;
+        }
+        
+        // Mostrar mensaje si no hay resultados
+        if (productosVisibles === 0 && tarjetas.length > 0) {
+            const noResultados = document.querySelector('.no-resultados');
+            if (!noResultados) {
+                const mensaje = document.createElement('div');
+                mensaje.className = 'no-resultados';
+                mensaje.innerHTML = `
+                    <i class="fas fa-search fa-3x" style="margin-bottom: 1rem; opacity: 0.5;"></i>
+                    <h3>No se encontraron productos</h3>
+                    <p>Intenta con otra búsqueda o categoría</p>
+                `;
+                grid.appendChild(mensaje);
+            }
+        } else {
+            const noResultados = document.querySelector('.no-resultados');
+            if (noResultados) noResultados.remove();
+        }
+    }
+
+    // ===== Función para abrir modal de imagen (actualizada con IVA) =====
     function abrirModalImagen(producto) {
         const tieneStock = producto.stock > 0;
         const stockClass = tieneStock ? 'disponible' : 'agotado';
         const stockText = tieneStock ? producto.stock + ' en stock' : 'AGOTADO';
+        const ivaTexto = producto.iva !== undefined ? `${producto.iva}% IVA` : 'IVA no especificado';
         
         modalImagenBody.innerHTML = `
             <img src="${producto.imagen}" alt="${producto.producto}" onerror="this.src='https://placehold.co/400x300/dfeef8/3b7e9c?text=IMG'">
@@ -640,6 +813,7 @@
                 <p><i class="fas fa-tag"></i> <strong>Producto:</strong> ${producto.producto}</p>
                 <p><i class="fas fa-folder"></i> <strong>Categoría:</strong> ${producto.categoria}</p>
                 <p><i class="fas fa-dollar-sign"></i> <strong>Precio:</strong> <span class="precio-modal">$${producto.precio.toLocaleString('es-EC')}</span> <small>/${producto.unidad || 'unidad'}</small></p>
+                <p><i class="fas fa-percent"></i> <strong>IVA:</strong> <span class="iva-modal">${ivaTexto}</span></p>
                 <p><i class="fas fa-boxes"></i> <strong>Stock:</strong> <span class="stock-modal ${stockClass}">${stockText}</span></p>
             </div>
         `;
@@ -746,35 +920,12 @@
                 document.querySelectorAll('.btn-categoria').forEach(b => b.classList.remove('activo'));
                 this.classList.add('activo');
                 
-                aplicarFiltro();
+                aplicarFiltroCompleto();
             });
         });
     }
 
-    // ========== APLICAR FILTRO ==========
-    function aplicarFiltro() {
-        const tarjetas = document.querySelectorAll('.card');
-        let productosVisibles = 0;
-        
-        tarjetas.forEach(card => {
-            const catCard = card.dataset.categoria;
-            
-            if (categoriaActiva === 'todas' || catCard === categoriaActiva) {
-                card.classList.remove('hidden-category');
-                productosVisibles++;
-            } else {
-                card.classList.add('hidden-category');
-            }
-        });
-        
-        if (categoriaActiva === 'todas') {
-            contadorSpan.textContent = `Mostrando todos los productos (${productosVisibles})`;
-        } else {
-            contadorSpan.textContent = `Mostrando ${categoriaActiva}: ${productosVisibles} productos`;
-        }
-    }
-
-    // ========== RENDERIZAR TARJETAS ==========
+    // ========== RENDERIZAR TARJETAS (ACTUALIZADO CON IVA) ==========
     function renderizarTarjetas() {
         if (productos.length === 0) {
             grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 2rem;">No hay productos disponibles</div>';
@@ -789,10 +940,14 @@
             const stockClass = tieneStock ? 'disponible' : 'agotado';
             const stockIcon = tieneStock ? 'fa-check-circle' : 'fa-times-circle';
             const stockText = tieneStock ? prod.stock : 'SIN STOCK';
+            const ivaTexto = prod.iva !== undefined ? `${prod.iva}%` : '';
+            
+            // Escapar el producto para pasarlo a la función del modal
+            const productoJSON = JSON.stringify(prod).replace(/'/g, "\\'");
             
             html += `
-                <div class="card" data-categoria="${prod.categoria}" data-indice="${idx}">
-                    <div class="img-container" onclick='abrirModalImagen(${JSON.stringify(prod).replace(/'/g, "\\'")})'>
+                <div class="card" data-categoria="${prod.categoria}" data-nombre="${prod.producto.toLowerCase()}" data-indice="${idx}">
+                    <div class="img-container" onclick='abrirModalImagen(${productoJSON})'>
                         <img src="${prod.imagen}" alt="${prod.producto}" loading="lazy" 
                              onerror="this.src='https://placehold.co/300x200/dfeef8/3b7e9c?text=${encodeURIComponent(prod.categoria)}'">
                         <span class="cat-icon-overlay">
@@ -800,9 +955,12 @@
                         </span>
                     </div>
                     <div class="card-content">
-                        <div class="nombre-producto" onclick='abrirModalImagen(${JSON.stringify(prod).replace(/'/g, "\\'")})'>${prod.producto}</div>
+                        <div class="nombre-producto" onclick='abrirModalImagen(${productoJSON})'>${prod.producto}</div>
                         <div class="precio-stock-row">
-                            <span class="precio">$${prod.precio.toLocaleString('es-EC')} <small>/${prod.unidad || 'unidad'}</small></span>
+                            <span class="precio">
+                                $${prod.precio.toLocaleString('es-EC')} <small>/${prod.unidad || 'unidad'}</small>
+                                ${ivaTexto ? `<span class="iva-badge">IVA ${ivaTexto}</span>` : ''}
+                            </span>
                             <span class="stock-indicator ${stockClass}">
                                 <i class="fas ${stockIcon}"></i> ${stockText}
                             </span>
@@ -829,11 +987,11 @@
         });
         
         grid.innerHTML = html;
-        aplicarFiltro();
+        aplicarFiltroCompleto();
         asignarEventosWSP();
     }
 
-    // ========== EVENTOS WHATSAPP ==========
+    // ========== EVENTOS WHATSAPP (ACTUALIZADO) ==========
     function asignarEventosWSP() {
         document.querySelectorAll('.btn-wsp:not(.disabled-btn)').forEach(btn => {
             btn.addEventListener('click', function(e) {
@@ -843,6 +1001,7 @@
                 const producto = this.dataset.producto;
                 const precioUnit = parseFloat(this.dataset.precio);
                 const stockMax = parseInt(this.dataset.stock);
+                const productoObj = productos[idx];
                 
                 const inputCant = document.querySelector(`.input-cantidad[data-index="${idx}"]`);
                 if (!inputCant) return;
@@ -851,12 +1010,21 @@
                 if (isNaN(cantidad) || cantidad < 1) cantidad = 1;
                 if (cantidad > stockMax) cantidad = stockMax;
                 
-                const total = precioUnit * cantidad;
+                const subtotal = precioUnit * cantidad;
+                const ivaPorcentaje = productoObj.iva || 0;
+                const ivaValor = subtotal * (ivaPorcentaje / 100);
+                const total = subtotal + ivaValor;
                 
-                const mensaje = `🛒 *Pedido Médico - TecnoMed*%0A` +
-                                `▪️ *Producto:* ${producto}%0A` +
-                                `▪️ *Cantidad:* ${cantidad}%0A` +
-                                `▪️ *Total:* $${total.toLocaleString('es-EC')}`;
+                let mensaje = `🛒 *Pedido Médico - TecnoMed*%0A` +
+                              `▪️ *Producto:* ${producto}%0A` +
+                              `▪️ *Cantidad:* ${cantidad}%0A` +
+                              `▪️ *Precio unit.:* $${precioUnit.toLocaleString('es-EC')}`;
+                
+                if (ivaPorcentaje > 0) {
+                    mensaje += `%0A▪️ *IVA (${ivaPorcentaje}%):* $${ivaValor.toLocaleString('es-EC')}`;
+                }
+                
+                mensaje += `%0A▪️ *TOTAL:* $${total.toLocaleString('es-EC')}`;
                 
                 window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${mensaje}`, '_blank');
             });
